@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JNT Express - Lacak Paket</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #e53e3e 0%, #dd2a2a 50%, #c53030 100%);
+        }
+        
+        .card-shadow {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tracking-step {
+            position: relative;
+            padding-left: 40px;
+        }
+        
+        .tracking-step::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 25px;
+            bottom: -25px;
+            width: 2px;
+            background: #e2e8f0;
+        }
+        
+        .tracking-step:last-child::before {
+            display: none;
+        }
+        
+        .tracking-step .step-icon {
+            position: absolute;
+            left: 8px;
+            top: 8px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .tracking-step.completed .step-icon {
+            background: #22c55e;
+            color: white;
+        }
+        
+        .tracking-step.active .step-icon {
+            background: #e53e3e;
+            color: white;
+        }
+        
+        .animate-pulse-custom {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        .package-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .package-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .dropdown-menu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        
+        .dropdown-menu.active {
+            max-height: 300px;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #e53e3e;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-delivered {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        
+        .status-transit {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        
+        .status-pickup {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+        
+        .status-processing {
+            background: #fce7f3;
+            color: #be185d;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/35/Logo_J%26T_Merah_Square.jpg"alt="J&T Express logo with red and white colors showing modern courier service branding" class="h-10">
+                    <div>
+                        <h2 class="text-2xl font-bold">J&T Express</h2>
+                        <p class="text-red-100 text-sm">Lacak Paket Anda</p>
+                    </div>
+                </div>
+                <nav class="hidden md:flex space-x-6">
+                    <a href="#" class="hover:text-red-200 transition-colors">Beranda</a>
+                    <a href="#" class="hover:text-red-200 transition-colors">Layanan</a>
+                    <a href="#" class="hover:text-red-200 transition-colors">Drop Point</a>
+                    <a href="#" class="hover:text-red-200 transition-colors">Bantuan</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Service Tabs -->
+        <div class="bg-white rounded-lg card-shadow mb-8">
+            <div class="border-b">
+                <nav class="flex">
+                    <button class="tab-btn px-6 py-4 text-red-600 border-b-2 border-red-600 font-semibold" data-tab="tracking">
+                        <i class="fas fa-search mr-2"></i>Lacak Paket
+                    </button>
+                    <button class="tab-btn px-6 py-4 text-gray-600 hover:text-red-600 transition-colors" data-tab="dropship">
+                        <i class="fas fa-shipping-fast mr-2"></i>Dropship
+                    </button>
+                    <button class="tab-btn px-6 py-4 text-gray-600 hover:text-red-600 transition-colors" data-tab="droppoint">
+                        <i class="fas fa-map-marker-alt mr-2"></i>Drop Point
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Tracking Tab -->
+            <div id="tracking" class="tab-content active p-6">
+                <div class="max-w-2xl mx-auto">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Lacak Paket JNT Express</h2>
+                    
+                    <div class="bg-gradient-to-r from-red-50 to-red-100 rounded-lg p-6 mb-6">
+                        <div class="flex items-center space-x-4">
+                            <div class="flex-1">
+                                <label class="block text-sm font-bold text-gray-700 mb-1">Masukkan Nomor Resi</label>
+                                <input type="text" id="trackingNumber" placeholder=" (contoh: JE1234567890)"
+                                                           class="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+<button id="trackBtn" class="gradient-bg text-white px-24 py-1 rounded-lg  opacity-90 transition-opacity font-semibold">                                             
+<class="fas fa-search mb-4">Lacak
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Quick Track Options -->
+                 
+                                <div>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+             </div>    
+                    <!-- Tracking Results -->
+                       
+                    <div id="trackingResults" class="hidden">
+                        <div class="bg-white rounded-lg border border-gray-200 p-6">
+                            <div class="flex items-center justify-between mb-6">
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-800">Informasi Paket</h3>
+                                    <p class="text-gray-600" id="packageResi">Resi: JE2323031995</p>
+                                </div>
+                                <span id="packageStatus" class="status-badge status-transit">Dalam Perjalanan</span>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <h4 class="font-semibold text-gray-700 mb-2">Pengirim</h4>
+                                    <p class="text-gray-600">Theo Cb</p>
+                                    <p class="text-gray-600">Bondowoso</p>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-700 mb-2">Penerima</h4>
+                                    <p class="text-gray-600">Ahmad Wijaya</p>
+                                    <p class="text-gray-600">Bandung, Jawa Barat</p>
+                                </div>
+                            </div>
+
+                            <h4 class="font-semibold text-gray-700 mb-4">Riwayat Pengiriman</h4>
+                            <div id="trackingHistory" class="space-y-4">
+                                <!-- Tracking history will be inserted here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Loading State -->
+                    <div id="loadingState" class="hidden text-center py-8">
+                        <div class="loading-spinner mx-auto mb-4"></div>
+                        <p class="text-gray-600">Mencari informasi paket...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dropship Tab -->
+            <div id="dropship" class="tab-content p-6">
+                <div class="max-w-4xl mx-auto">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Layanan Dropship JNT Express</h2>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6">
+                            <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/43a3c49c-ce91-4f36-b826-e10f7d19b43e.png" alt="Modern dropshipping illustration showing packages being shipped directly from supplier to customer with digital commerce interface" class="w-full rounded-lg mb-4">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-4">Apa itu Dropship?</h3>
+                            <p class="text-gray-600 mb-4">Dropship adalah layanan pengiriman dimana penjual tidak perlu menyimpan stok barang. Barang langsung dikirim dari supplier ke pembeli.</p>
+                            <ul class="space-y-2 text-gray-600">
+                                <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i>Tidak perlu modal stok</li>
+                                <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i>Risiko kerugian minimal</li>
+                                <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i>Proses otomatis</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-white border border-gray-200 rounded-lg p-6">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-4">Daftar Dropship</h3>
+                            <form class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Nama Toko</label>
+                                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent" placeholder="Nama toko online Anda">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                                    <input type="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent" placeholder="email@example.com">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Nomor Telepon</label>
+                                    <input type="tel" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent" placeholder="08xxxxxxxxxx">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Produk</label>
+                                    <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                                        <option>Fashion</option>
+                                        <option>Elektronik</option>
+                                        <option>Kesehatan & Kecantikan</option>
+                                        <option>Makanan & Minuman</option>
+                                        <option>Lainnya</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="w-full gradient-bg text-white py-3 rounded-lg hover:opacity-90 transition-opacity font-semibold">
+                                    Daftar Sekarang
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Benefits Section -->
+                    <div class="mt-12">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-6 text-center">Keuntungan Dropship dengan JNT Express</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="text-center">
+                                <div class="w-16 h-16 gradient-bg rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <i class="fas fa-dollar-sign text-white text-xl"></i>
+                                </div>
+                                <h4 class="font-semibold text-gray-800 mb-2">Harga Kompetitif</h4>
+                                <p class="text-gray-600">Dapatkan harga khusus untuk dropshipper dengan volume tinggi</p>
+                            </div>
+                            <div class="text-center">
+                                <div class="w-16 h-16 gradient-bg rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <i class="fas fa-shipping-fast text-white text-xl"></i>
+                                </div>
+                                <h4 class="font-semibold text-gray-800 mb-2">Pengiriman Cepat</h4>
+                                <p class="text-gray-600">Jaringan luas dengan delivery time yang reliable</p>
+                            </div>
+                            <div class="text-center">
+                                <div class="w-16 h-16 gradient-bg rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <i class="fas fa-headset text-white text-xl"></i>
+                                </div>
+                                <h4 class="font-semibold text-gray-800 mb-2">Support 24/7</h4>
+                                <p class="text-gray-600">Tim customer service siap membantu kapan saja</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Drop Point Tab -->
+            <div id="droppoint" class="tab-content p-6">
+                <div class="max-w-6xl mx-auto">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Cari Drop Point JNT Express</h2>
+                    
+                    <!-- Search Section -->
+                    <div class="bg-gradient-to-r from-red-50 to-red-100 rounded-lg p-6 mb-8">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Provinsi</label>
+                                <select id="provinceSelect" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                                    <option value="">Pilih Provinsi</option>
+                                   <option value="11">
+                                    ACEH
+                                </option>
+                                <option value="12">
+                                    SUMATERA UTARA
+                                </option>
+                                <option value="13">
+                                    SUMATERA BARAT
+                                </option>
+                                <option value="14">
+                                    R I A U
+                                </option>
+                                <option value="15">
+                                    J A M B I
+                                </option>
+                                <option value="16">
+                                    SUMATERA SELATAN
+                                </option>
+                                <option value="17">
+                                    BENGKULU
+                                </option>
+                                <option value="18">
+                                    LAMPUNG
+                                </option>
+                                <option value="19">
+                                    KEPULAUAN BANGKA BELITUNG
+                                </option>
+                                <option value="21">
+                                    KEPULAUAN RIAU
+                                </option>
+                                <option value="31">
+                                    DKI JAKARTA
+                                </option>
+                                <option value="32">
+                                    JAWA BARAT
+                                </option>
+                                <option value="33">
+                                    JAWA TENGAH
+                                </option>
+                                <option value="34">
+                                    DI YOGYAKARTA
+                                </option>
+                                <option value="35">
+                                    JAWA TIMUR
+                                </option>
+                                <option value="36">
+                                    B A N T E N
+                                </option>
+                                <option value="51">
+                                    BALI
+                                </option>
+                                <option value="52">
+                                    NUSA TENGGARA BARAT
+                                </option>
+                                <option value="53">
+                                    NUSA TENGGARA TIMUR
+                                </option>
+                                <option value="61">
+                                    KALIMANTAN BARAT
+                                </option>
+                                <option value="62">
+                                    KALIMANTAN TENGAH
+                                </option>
+                                <option value="63">
+                                    KALIMANTAN SELATAN
+                                </option>
+                                <option value="64">
+                                    KALIMANTAN TIMUR
+                                </option>
+                                <option value="71">
+                                    SULAWESI UTARA
+                                </option>
+                                <option value="73">
+                                    SULAWESI SELATAN
+                                </option>
+                                <option value="74">
+                                    SULAWESI TENGGARA
+                                </option>
+                                <option value="75">
+                                    GORONTALO
+                                </option>
+                                <option value="76">
+                                    SULAWESI BARAT
+                                </option>
+                                <option value="81">
+                                    MALUKU
+                                </option>
+                                <option value="82">
+                                    MALUKU UTARA
+                                </option>
+                                <option value="94">
+                                    PAPUA
+                                </option>
+                                <option value="91">
+                                    PAPUA BARAT
+                                </option>
+                                <option value="72">
+                                    SULAWESI TENGAH
+                                </option>
+                                <option value="65">
+                                    KALIMANTAN UTARA
+                                </option>
+                            </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Kota/Kabupaten</label>                            </select>                          
+                                <input type="text" id="districtInput" placeholder="Masukkan kota/kab" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                                    
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Kecamatan</label>
+                                <input type="text" id="districtInput" placeholder="Masukkan kecamatan" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                            </div>
+                        </div>
+                        <button id="searchDropPoint" class="mt-4 gradient-bg text-white px-6 py-2 rounded-lg hover:opacity-90 transition-opacity font-semibold">
+                            <i class="fas fa-search mr-2"></i>Cari Drop Point
+                        </button>
+                    </div>
+
+                    <!-- Map Section -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="bg-white rounded-lg border border-gray-200 p-4">
+                            <h3 class="font-semibold text-gray-800 mb-4">Peta Lokasi</h3>
+                            <div class="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+                                <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/aa9a0667-c735-4919-93ca-df6457cce086.png" alt="Interactive map showing JNT Express drop point locations with red markers and street view of Jakarta area" class="w-full h-full object-cover rounded-lg">
+                            </div>
+                        </div>
+
+                        <!-- Drop Point List -->
+                        <div class="bg-white rounded-lg border border-gray-200 p-4">
+                            <h3 class="font-semibold text-gray-800 mb-4">Drop Point Terdekat</h3>
+                            <div id="dropPointList" class="space-y-4 max-h-64 overflow-y-auto">
+                                <!-- Drop points will be inserted here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Featured Drop Points -->
+                    <div class="mt-12">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-6">Drop Point Populer</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
+                                <div class="flex items-start justify-between mb-4">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800">J&T Exp</h4>
+                                        <p class="text-sm text-gray-600">Bondowoso</p>
+                                    </div>
+                                    <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Buka</span>
+                                </div>
+                                <p class="text-gray-600 text-sm mb-4">Jl. Letjen S. Parman Kav. 21, Taman Anggrek Mall Lt. 2</p>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-500">
+                                        <i class="fas fa-clock mr-1"></i>09:00 - 21:00
+                                    </span>
+                                    <button class="text-red-600 hover:text-red-700 text-sm font-semibold">
+                                        <i class="fas fa-directions mr-1"></i>Rute
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
+                                <div class="flex items-start justify-between mb-4">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800">J&T Kelapa Gading</h4>
+                                        <p class="text-sm text-gray-600">Jakarta Utara</p>
+                                    </div>
+                                    <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Buka</span>
+                                </div>
+                                <p class="text-gray-600 text-sm mb-4">Jl. Boulevard Barat Raya, Kelapa Gading</p>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-500">
+                                        <i class="fas fa-clock mr-1"></i>08:00 - 20:00
+                                    </span>
+                                    <button class="text-red-600 hover:text-red-700 text-sm font-semibold">
+                                        <i class="fas fa-directions mr-1"></i>Rute
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
+                                <div class="flex items-start justify-between mb-4">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800">J&T Pondok Indah</h4>
+                                        <p class="text-sm text-gray-600">Jakarta Selatan</p>
+                                    </div>
+                                    <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Buka</span>
+                                </div>
+                                <p class="text-gray-600 text-sm mb-4">Jl. Metro Pondok Indah, PIM 2</p>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-500">
+                                        <i class="fas fa-clock mr-1"></i>10:00 - 22:00
+                                    </span>
+                                    <button class="text-red-600 hover:text-red-700 text-sm font-semibold">
+                                        <i class="fas fa-directions mr-1"></i>Rute
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Info Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-lg card-shadow p-6 text-center">
+                <div class="w-16 h-16 gradient-bg rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-clock text-white text-xl"></i>
+                </div>
+                <h3 class="font-semibold text-gray-800 mb-2">Pengiriman Cepat</h3>
+                <p class="text-gray-600 text-sm">Same day delivery untuk area tertentu</p>
+            </div>
+            <div class="bg-white rounded-lg card-shadow p-6 text-center">
+                <div class="w-16 h-16 gradient-bg rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-shield-alt text-white text-xl"></i>
+                </div>
+                <h3 class="font-semibold text-gray-800 mb-2">Asuransi Paket</h3>
+                <p class="text-gray-600 text-sm">Perlindungan maksimal untuk barang Anda</p>
+            </div>
+            <div class="bg-white rounded-lg card-shadow p-6 text-center">
+                <div class="w-16 h-16 gradient-bg rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-headset text-white text-xl"></i>
+                </div>
+                <h3 class="font-semibold text-gray-800 mb-2">Customer Service</h3>
+                <p class="text-gray-600 text-sm">Support 24/7 siap membantu Anda</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="font-semibold mb-4">J&T Express</h3>
+                    <p class="text-gray-400 text-sm mb-4">Layanan pengiriman terpercaya dengan jangkauan nasional dan internasional.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Layanan</h4>
+                    <ul class="space-y-2 text-gray-400 text-sm">
+                        <li><a href="#" class="hover:text-white transition-colors">Reguler</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Express</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Same Day</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">International</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Bantuan</h4>
+                    <ul class="space-y-2 text-gray-400 text-sm">
+                        <li><a href="#" class="hover:text-white transition-colors">FAQ</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Kontak</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Komplain</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Syarat & Ketentuan</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Kontak</h4>
+                    <ul class="space-y-2 text-gray-400 text-sm">
+                        <li><i class="fas fa-phone mr-2"></i>1500-888</li>
+                        <li><i class="fas fa-envelope mr-2"></i>cs@jet.co.id</li>
+                        <li><i class="fas fa-map-marker-alt mr-2"></i>Jakarta, Indonesia</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400 text-sm">
+                <p>© 2025 J&T Express. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Sample tracking data
+        const trackingData = {
+            'JE2323032025': {
+                status: 'Dalam Perjalanan',
+                statusClass: 'status-transit',
+                sender: 'Toko Online ABC',
+                senderLocation: 'Jakarta Selatan',
+                receiver: 'Ahmad Wijaya',
+                receiverLocation: 'Bandung, Jawa Barat',
+                history: [
+                    {
+                        date: '2025-10-15 14:30',
+                        status: 'Paket telah diterima oleh kurir untuk diantarkan',
+                        location: 'ke Lokasi Penerima',
+                        completed: false,
+                        active: true
+                    },
+                    {
+                        date: '2025-10-15 08:15',
+                        status: 'Paket telah sampai di kota tujuan',
+                        location: 'Bandung Hub',
+                        completed: false,
+                        active: true
+                    },
+                    {
+                        date: '2025-10-16 22:45',
+                        status: 'Paket dalam perjalanan menuju kota tujuan',
+                        location: 'Jakarta Hub',
+                        completed: false,
+                        active: true
+                    },
+                    {
+                        date: '2025-10-17 13:45',
+                        status: 'Paket Telah di terimah',
+                        location: 'J&T Bondowoso',
+                        completed: true,
+                        active: false
+                    }
+                ]
+            },
+            'JP0987654321': {
+                status: 'Terkirim',
+                statusClass: 'status-delivered',
+                sender: 'Fashion Store XYZ',
+                senderLocation: 'Surabaya',
+                receiver: 'Siti Nurhaliza',
+                receiverLocation: 'Malang, Jawa Timur',
+                history: [
+                    {
+                        date: '2024-01-14 16:45',
+                        status: 'Paket telah diterima oleh penerima',
+                        location: 'Malang',
+                        completed: true,
+                        active: false
+                    },
+                    {
+                        date: '2024-01-14 09:30',
+                        status: 'Paket dalam pengantaran',
+                        location: 'Malang Hub',
+                        completed: true,
+                        active: false
+                    },
+                    {
+                        date: '2024-01-13 20:15',
+                        status: 'Paket telah sampai di kota tujuan',
+                        location: 'Malang Hub',
+                        completed: true,
+                        active: false
+                    }
+                ]
+            },
+            'JP1122334455': {
+                status: 'Siap Pickup',
+                statusClass: 'status-pickup',
+                sender: 'Warung Makan Sederhana',
+                senderLocation: 'Yogyakarta',
+                receiver: 'Budi Santoso',
+                receiverLocation: 'Solo, Jawa Tengah',
+                history: [
+                    {
+                        date: '2024-01-15 10:00',
+                        status: 'Paket siap untuk di-pickup',
+                        location: 'Yogyakarta',
+                        completed: false,
+                        active: true
+                    },
+                    {
+                        date: '2024-01-15 08:30',
+                        status: 'Paket telah dikemas dan siap dikirim',
+                        location: 'Yogyakarta',
+                        completed: true,
+                        active: false
+                    }
+                ]
+            }
+        };
+
+        // City data
+        const cityData = {
+            'jawa-barat': ['Bandung', 'Bogor', 'Depok', 'Bekasi', 'Cimahi', 'Tasikmalaya', 'Cirebon'],
+            'jawa-tengah': ['Semarang', 'Solo', 'Yogyakarta', 'Magelang', 'Pekalongan', 'Tegal'],
+            'jawa-timur': ['Surabaya', 'Malang', 'Kediri', 'Blitar', 'Mojokerto', 'Pasuruan'],
+            'dki-jakarta': ['Jakarta Pusat', 'Jakarta Utara', 'Jakarta Barat', 'Jakarta Selatan', 'Jakarta Timur'],
+            'banten': ['Tangerang', 'Serang', 'Cilegon', 'Tangerang Selatan']
+        };
+
+        // Drop point sample data
+        const dropPointData = [
+            {
+                name: 'JNT Express Bondoso',
+                address: 'Jl. Kopo Permai No. 45, Bandung',
+                hours: '08:00 - 20:00',
+                status: 'Buka',
+                phone: '022-1234567'
+            },
+            {
+                name: 'JNT Express Bandung Dago',
+                address: 'Jl. Dago No. 123, Bandung',
+                hours: '09:00 - 21:00',
+                status: 'Buka',
+                phone: '022-2345678'
+            },
+            {
+                name: 'JNT Express Bandung Cihampelas',
+                address: 'Jl. Cihampelas No. 78, Bandung',
+                hours: '10:00 - 22:00',
+                status: 'Tutup',
+                phone: '022-3456789'
+            }
+        ];
+
+        // Tab functionality
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.dataset.tab;
+                
+                // Remove active class from all tabs and content
+                document.querySelectorAll('.tab-btn').forEach(t => {
+                    t.classList.remove('text-red-600', 'border-b-2', 'border-red-600');
+                    t.classList.add('text-gray-600');
+                });
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                // Add active class to clicked tab and show content
+                btn.classList.remove('text-gray-600');
+                btn.classList.add('text-red-600', 'border-b-2', 'border-red-600');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+
+        // Tracking functionality
+        document.getElementById('trackBtn').addEventListener('click', () => {
+            const trackingNumber = document.getElementById('trackingNumber').value.trim();
+            if (trackingNumber) {
+                performTracking(trackingNumber);
+            } else {
+                alert('Silakan masukkan nomor resi');
+            }
+        });
+
+        // Quick track cards
+        document.querySelectorAll('.package-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const resi = card.dataset.resi;
+                document.getElementById('trackingNumber').value = resi;
+                performTracking(resi);
+            });
+        });
+
+        function performTracking(resi) {
+            // Show loading state
+            document.getElementById('loadingState').classList.remove('hidden');
+            document.getElementById('trackingResults').classList.add('hidden');
+            
+            // Simulate API call
+            setTimeout(() => {
+                const data = trackingData[resi];
+                
+                if (data) {
+                    displayTrackingResults(resi, data);
+                } else {
+                    alert('Nomor resi tidak ditemukan');
+                }
+                
+                document.getElementById('loadingState').classList.add('hidden');
+            }, 1500);
+        }
+
+        function displayTrackingResults(resi, data) {
+            document.getElementById('packageResi').textContent = `Resi: ${resi}`;
+            document.getElementById('packageStatus').textContent = data.status;
+            document.getElementById('packageStatus').className = `status-badge ${data.statusClass}`;
+            
+            // Display tracking history
+            const historyContainer = document.getElementById('trackingHistory');
+            historyContainer.innerHTML = '';
+            
+            data.history.forEach(item => {
+                const stepDiv = document.createElement('div');
+                stepDiv.className = `tracking-step ${item.completed ? 'completed' : ''} ${item.active ? 'active' : ''}`;
+                
+                stepDiv.innerHTML = `
+                    <div class="step-icon">
+                        ${item.completed ? '<i class="fas fa-check text-xs"></i>' : ''}
+                    </div>
+                    <div class="ml-4">
+                        <div class="flex items-center justify-between mb-1">
+                            <p class="font-semibold text-gray-800">${item.status}</p>
+                            <span class="text-sm text-gray-500">${item.date}</span>
+                        </div>
+                        <p class="text-gray-600 text-sm">${item.location}</p>
+                    </div>
+                `;
+                
+                historyContainer.appendChild(stepDiv);
+            });
+            
+            document.getElementById('trackingResults').classList.remove('hidden');
+        }
+
+        // Province change handler for drop point
+        document.getElementById('provinceSelect').addEventListener('change', (e) => {
+            const province = e.target.value;
+            const citySelect = document.getElementById('citySelect');
+            
+            citySelect.innerHTML = '<option value="">Pilih Kota</option>';
+            
+            if (province && cityData[province]) {
+                cityData[province].forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city.toLowerCase().replace(/\s+/g, '-');
+                    option.textContent = city;
+                    citySelect.appendChild(option);
+                });
+            }
+        });
+
+        // Search drop point
+        document.getElementById('searchDropPoint').addEventListener('click', () => {
+            const province = document.getElementById('provinceSelect').value;
+            const city = document.getElementById('citySelect').value;
+            
+            if (province && city) {
+                displayDropPoints();
+            } else {
+                alert('Silakan pilih provinsi dan kota terlebih dahulu');
+            }
+        });
+
+        function displayDropPoints() {
+            const container = document.getElementById('dropPointList');
+            container.innerHTML = '';
+            
+            dropPointData.forEach(point => {
+                const div = document.createElement('div');
+                div.className = 'border border-gray-200 rounded-lg p-4';
+                
+                div.innerHTML = `
+                    <div class="flex items-start justify-between mb-2">
+                        <h4 class="font-semibold text-gray-800">${point.name}</h4>
+                        <span class="text-xs px-2 py-1 rounded-full ${
+                            point.status === 'Buka' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }">${point.status}</span>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-2">${point.address}</p>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-gray-500">
+                            <i class="fas fa-clock mr-1"></i>${point.hours}
+                        </span>
+                        <div class="space-x-2">
+                            <button class="text-red-600 hover:text-red-700 text-xs">
+                                <i class="fas fa-phone mr-1"></i>Call
+                            </button>
+                            <button class="text-red-600 hover:text-red-700 text-xs">
+                                <i class="fas fa-directions mr-1"></i>Route
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(div);
+            });
+        }
+
+        // Enter key handler for tracking input
+        document.getElementById('trackingNumber').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('trackBtn').click();
+            }
+        });
+
+        // Initialize with sample drop points
+        displayDropPoints();
+    </script>
+</body>
+</html>
+
