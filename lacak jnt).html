@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cek Resi Pengiriman - J&T, Indah Cargo, JNE</title>
+    <style>
+        /* Reset dan Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial bold', sans-serif;
+            background: linear-gradient(135deg, #FF0000 100%, #FF0000 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+        }
+
+        /* Animasi Gambar Bergerak */
+        .animated-image {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 100px;
+            height: 100px;
+            z-index: 10;
+            opacity: 0.8;
+        }
+
+        .truck {
+            animation: moveTruck 10s linear infinite;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 50"><rect width="100" height="30" fill="%23FF0000"/><rect y="30" width="100" height="20" fill="%23FFFFFF"/><circle cx="20" cy="40" r="10" fill="%23FF0000"/><circle cx="80" cy="40" r="10" fill="%23FF0000"/></svg>') no-repeat center/cover;
+        }
+
+        @keyframes moveTruck {
+            80% { transform: translateX(-100px) rotate(0deg); }
+            100% { transform: translateX(120vw) rotate(5deg); }
+        }
+
+        .package {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 80px;
+            height: 80px;
+            animation: bouncePackage 3s ease-in-out infinite;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" fill="%23FFFFFF" stroke="%23FF0000" stroke-width="2"/><text x="40" y="45" font-size="12" text-anchor="middle" fill="%23FF0000">Paket</text></svg>') no-repeat center/cover;
+            z-index: 10;
+        }
+
+        @keyframes bouncePackage {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* Form Utama */
+        .cek-resi-container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #black;
+        }
+
+        select, input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid black;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        select:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: #black;
+            background: #black;
+            color: black;
+        }
+
+        button {
+            background: linear-gradient(45deg, #blue, #FFFFFF);
+            color: #black;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            width: 100%;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(255, 0, 0, 0.4);
+        }
+
+        /* Hasil Cek Resi - Timeline Lengkap */
+        #result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+            text-align: left;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .success {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid #00FF00;
+            color: #006600;
+        }
+
+        .error {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid #black;
+            color: #660000;
+        }
+
+        .tracking-info {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #black;
+        }
+
+        .tracking-info h3 {
+            color: #FF0000;
+            margin-bottom: 10px;
+        }
+
+        .timeline {
+            position: relative;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .timeline::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            background-color: #FF0000;
+            top: 0;
+            bottom: 0;
+            left: 19px;
+            margin-left: -3px;
+            border-radius: 3px;
+        }
+
+        .timeline-item {
+            padding: 10px 40px;
+            position: relative;
+            background: inherit;
+            width: 100%;
+            animation: fadeInUp 0.5s ease forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .timeline-item:nth-child(even) {
+            background: rgba(255, 0, 0, 0.05);
+        }
+
+        .timeline-item:nth-child(odd) {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            right: -17px;
+            background: #FF0000;
+            border: 4px solid white;
+            top: 15px;
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            top: 15px;
+            right: -12px;
+            border-width: 12px 0 12px 12px;
+            border-color: transparent transparent transparent #FF0000;
+        }
+
+        .timeline-content {
+            padding: 10px 0;
+        }
+
+        .timeline-content strong {
+            color: #FF0000;
+            display: block;
+        }
+
+        .timeline-content .date {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .timeline-content .location {
+            color: #121111;
+            font-weight: medium;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            color: #black;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            h1 { font-size: 2em; }
+            .cek-resi-container { padding: 20px; }
+            .animated-image, .package { display: none; }
+            .timeline::after { left: 7px; }
+            .timeline-item { padding-left: 20px; padding-right: 20px; }
+            .timeline-item::after { left: -17px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Gambar Bergerak: Truk Bergerak -->
+    <div class="animated-image truck"></div>
+
+    <!-- Gambar Bergerak: Paket Memantul -->
+    <div class="package"></div>
+
+    <header>
+       <h1> Cek Resi Pengiriman</h1
+        <p class="subtitle">Pilih kurir dan masukkan nomor resi untuk tracking lengkap</p>
+    </header>
+
+    <div class="cek-resi-container">
+        <form id="cekResiForm">
+            <div class="form-group">
+                <label for="kurir">Pilih Kurir:</label>
+                <select id="kurir" required>
+                    <option value="">-- Pilih Kurir --</option>
+                    <option value="jnt">J&T EXPRESS</option>
+                    <option value="indah">INDAH CARGO</option>
+                    <option value="jne">JNE</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="resi">Nomor Resi:</label>
+                <input type="text" id="resi" placeholder="(contoh: JT1234567890)" required>
+            </div>
+
+            <button type="submit">Cek Resi Sekarang!</button>
+        </form>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // Fungsi Dummy untuk Cek Resi dengan Data Lengkap (Timeline)
+        function cekResi(kurir, resi) {
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    if (resi.length < 5) {
+                        resolve({ status: 'error', message: 'Nomor resi terlalu pendek. Pastikan nomor resi valid.' });
+                    } else {
+                        // Data dummy timeline berdasarkan kurir (lebih lengkap)
+                        let timeline = [];
+                        let currentStatus = '';
+                        const today = new Date().toLocaleDateString('id-ID');
+                        const yesterday = new Date(Date.now() - 86400000).toLocaleDateString('id-ID');
+
+                        if (kurir === 'jnt') {
+                            currentStatus = 'Dalam Perjalanan';
+                            timeline = [
+                                { date: '10-10-2025', location: 'Pengirim', desc: 'Paket diterima dari pengirim di bondowoso.' },
+                                { date: today, location: 'Gudang J&T', desc: 'Paket masuk ke gudang sorting.' },
+                                { date: today, location: 'Truk Pengiriman', desc: 'Paket sedang dikirim ke tujuan. Estimasi tiba: 3 hari.' }
+                            ];
+                        } else if (kurir === 'indah') {
+                            currentStatus = 'Diproses di Gudang';
+                            timeline = [
+                                { date: '2023-10-01', location: 'Pengirim', desc: 'Paket dijemput dari alamat pengirim di Surabaya.' },
+                                { date: yesterday, location: 'Gudang Indah Cargo', desc: 'Paket tiba di gudang utama dan sedang diproses.' },
+                                { date: today, location: 'Loading Dock', desc: 'Paket siap dimuat ke truk. Estimasi pengiriman: 3-5 hari.' }
+                            ];
+                        } else if (kurir === 'jne') {
+                            currentStatus = 'Diterima Penerima';
+                            timeline = [
+                                { date: '2023-10-01', location: 'Pengirim', desc: 'Paket dikirim dari Bandung.' },
+                                { date: yesterday, location: 'Cabang JNE Jakarta', desc: 'Paket tiba di cabang transit.' },
+                                { date: today, location: 'Alamat Penerima', desc: 'Paket berhasil diserahkan kepada penerima.' }
+                            ];
+                        }
+
+                        resolve({ 
+                            status: 'success', 
+                            kurir: kurir.toUpperCase(), 
+                            resi: resi, 
+                            currentStatus: currentStatus, 
+                            timeline: timeline 
+                        });
+                    }
+                }, 2000); // Delay lebih lama untuk efek loading
+            });
+        }
+
+        // Event Listener untuk Form
+        document.getElementById('cekResiForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const kurir = document.getElementById('kurir').value;
+            const resi = document.getElementById('resi').value.trim();
+
+            if (!kurir || !resi) {
+                alert('Silakan pilih kurir dan masukkan nomor resi!');
+                return;
+            }
+
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<div class="loading"> Memproses tracking... Silakan tunggu.</div>';
+            resultDiv.style.display = 'block';
+            resultDiv.className = ''; // Reset class
+
+            try {
+                const response = await cekResi(kurir, resi);
+                if (response.status === 'success') {
+                    resultDiv.className = 'success';
+                    let timelineHTML = `
+                        <div class="tracking-info">
+                            <h3> Informasi Tracking</h3>
+                            <p><strong>Kurir:</strong> ${response.kurir}</p>
+                            <p><strong>Nomor Resi:</strong> ${response.resi}</p>
+                            <p><strong>Status Saat Ini:</strong> <span style="color: #FF0000; font-weight: bold;">${response.currentStatus}</span></p>
+                            <p><em>Catatan: Data ini simulasi. Integrasikan API resmi untuk akurasi.</em></p>
+                        </div>
+                        <div class="timeline">
+                    `;
+
+                    response.timeline.forEach((item, index) => {
+                        timelineHTML += `
+                            <div class="timeline-item" style="animation-delay: ${index * 0.2}s;">
+                                <div class="timeline-content">
+                                    <strong>${item.desc}</strong>
+                                    <span class="date">${item.date}</span><br>
+                                    <span class="location"> ${item.location}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    timelineHTML += '</div>';
+                    resultDiv.innerHTML = timelineHTML;
+                } else {
+                    resultDiv.className = 'error';
+                    resultDiv.innerHTML = `<p><strong>Error:</strong> ${response.message}</p>`;
+                }
+            } catch (error) {
+                resultDiv.className = 'error';
+                resultDiv.innerHTML = '<p>Terjadi kesalahan. Coba lagi nanti.</p>';
+            }
+        });
+    </script>
+</body>
+</html>
